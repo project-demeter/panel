@@ -1,0 +1,22 @@
+{
+  "name": "@demeter/panel",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/project-demeter/panel",
+  "license": "MIT",
+  "private": false,
+  "contributors": [
+    { "name": "Christopher Mühl", "email": "github@padarom.xyz" },
+    { "name": "Eric Dattore", "email": "edattore@gmail.com" }
+  ],
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^9.1.1",
+    "react": "^16.10.2",
+    "react-dom": "^16.10.2"
+  }
+}
