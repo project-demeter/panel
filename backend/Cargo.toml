@@ -1,0 +1,12 @@
+[package]
+name = "backend"
+version = "0.1.0"
+authors = ["Christopher Mühl <github@padarom.xyz>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = "0.4.2"
+juniper = "0.10"
+juniper_rocket = "0.2.0"
