@@ -6,13 +6,20 @@
   "license": "MIT",
   "private": false,
   "contributors": [
-    { "name": "Christopher Mühl", "email": "github@padarom.xyz" },
-    { "name": "Eric Dattore", "email": "edattore@gmail.com" }
+    {
+      "name": "Christopher Mühl",
+      "email": "github@padarom.xyz"
+    },
+    {
+      "name": "Eric Dattore",
+      "email": "edattore@gmail.com"
+    }
   ],
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "export": "npm run build && next export && cp -R out/* ../backend/static"
   },
   "dependencies": {
     "next": "^9.1.1",

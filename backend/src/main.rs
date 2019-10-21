@@ -2,11 +2,11 @@
 
 #[macro_use] extern crate rocket;
 
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
-}
+pub mod routes;
 
 fn main() {
-    rocket::ignite().mount("/", routes![index]).launch();
+    rocket::ignite()
+        .mount("/", routes::get_routes())
+        .register(routes::get_catchers())
+        .launch();
 }
