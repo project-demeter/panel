@@ -4,7 +4,7 @@ const Server = () => {
     const router = useRouter()
     const { id } = router.query
 
-    return <p>Server: {id}</p>
+    return <p>Showing server {id}</p>
 }
 
 export default Server
