@@ -12,6 +12,8 @@ juniper = "0.10"
 juniper_rocket = "0.2.0"
 diesel = { version = "1.4.0", features = ["sqlite"] }
 dotenv = "0.10"
+walkdir = "2"
+regex = "1"
 
 [dependencies.rocket_contrib]
 version = "0.4.2"
