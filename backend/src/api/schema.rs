@@ -1,7 +1,7 @@
 use juniper::{FieldResult, EmptyMutation};
 
 #[derive(GraphQLEnum)]
-enum Episode {
+pub enum Episode {
     NewHope,
     Empire,
     Jedi,
@@ -31,10 +31,7 @@ struct NewHuman {
 // Objects can have contexts that allow accessing shared state like a database
 // pool.
 
-pub struct Context {
-    // Use your real database pool here.
-    // pool: DatabasePool,
-}
+pub struct Context(pub Episode);
 
 // To make our context usable by Juniper, we have to implement a marker trait.
 impl juniper::Context for Context {}
@@ -77,4 +74,4 @@ graphql_object!(Mutation: Context |&self| {
 
 // A root schema consists of a query and a mutation.
 // Request queries can be executed against a RootNode.
-pub type Schema = juniper::RootNode<'static, Query, EmptyMutation<()>>;
+pub type Schema = juniper::RootNode<'static, Query, EmptyMutation<Context>>;
