@@ -1,8 +1,7 @@
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Rocket, State};
 use rocket::response::content::Html;
-use juniper::EmptyMutation;
-use crate::api::schema::{Schema, Query, Context, Episode};
+use crate::api::schema::{Schema, Query, Context, Mutation};
 
 #[get("/graphiql")]
 fn graphiql() -> Html<String> {
@@ -17,7 +16,6 @@ fn get_graphql_handler(
 ) -> juniper_rocket::GraphQLResponse {
     request.execute(schema.inner(), &context)
 }
-
 
 #[post("/graphql", data = "<request>")]
 fn post_graphql_handler(
@@ -40,8 +38,7 @@ impl Fairing for GraphqlFairing {
 
     fn on_attach(&self, rocket: Rocket) -> Result<Rocket, Rocket> {
         let rocket = rocket
-            .manage(Context(Episode::NewHope))
-            .manage(Schema::new(Query, EmptyMutation::<Context>::new()))
+            .manage(Schema::new(Query, Mutation {}))
             .mount("/", routes![graphiql, get_graphql_handler, post_graphql_handler]);
 
         Ok(rocket)
