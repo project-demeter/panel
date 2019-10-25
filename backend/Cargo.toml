@@ -8,9 +8,8 @@ edition = "2018"
 
 [dependencies]
 rocket = "0.4.2"
-juniper = "0.10"
+juniper = "0.14.1"
 juniper_rocket = "0.2.0"
-juniper-from-schema = "0.5.0"
 diesel = { version = "1.4.0", features = ["sqlite"] }
 dotenv = "0.10"
 walkdir = "2"

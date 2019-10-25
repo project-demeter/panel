@@ -2,12 +2,14 @@
 
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate rocket_contrib;
+#[macro_use] extern crate juniper;
 extern crate diesel;
 extern crate walkdir;
 extern crate regex;
 extern crate dotenv;
 
-pub mod rocket_fairings;
+mod nextjs;
+mod api;
 
 use diesel::SqliteConnection;
 
@@ -17,7 +19,7 @@ pub struct DbConnection(SqliteConnection);
 fn main() {
     rocket::ignite()
         .manage(DbConnection::fairing())
-        .attach(rocket_fairings::NextJs())
-        .attach(rocket_fairings::Juniper())
+        .attach(nextjs::NextJsFairing())
+        .attach(api::GraphqlFairing())
         .launch();
 }

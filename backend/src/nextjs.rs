@@ -34,9 +34,9 @@ impl Handler for DynamicRouteHandler {
     }
 }
 
-pub struct NextJs();
+pub struct NextJsFairing();
 
-impl Fairing for NextJs {
+impl Fairing for NextJsFairing {
     fn info(&self) -> Info {
         Info {
             name: "Next.js Template Provider",
