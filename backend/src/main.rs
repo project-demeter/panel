@@ -1,16 +1,23 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 #[macro_use] extern crate rocket;
+#[macro_use] extern crate rocket_contrib;
+extern crate diesel;
 extern crate walkdir;
 extern crate regex;
+extern crate dotenv;
 
-pub mod routes;
+pub mod rocket_fairings;
+
+use diesel::SqliteConnection;
+
+#[database("sqlite_database")]
+pub struct DbConnection(SqliteConnection);
 
 fn main() {
-    let routes = routes::get_routes().expect("Could not find static frontend files");
-
     rocket::ignite()
-        .mount("/", routes)
-        .register(routes::get_catchers())
+        .manage(DbConnection::fairing())
+        .attach(rocket_fairings::NextJs())
+        .attach(rocket_fairings::Juniper())
         .launch();
 }
