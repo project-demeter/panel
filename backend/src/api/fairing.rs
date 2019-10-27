@@ -1,7 +1,7 @@
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Rocket, State};
 use rocket::response::content::Html;
-use crate::api::schema::{Schema, Query, Context, Mutation};
+use super::schema::{Schema, Query, Context, Mutation};
 
 #[get("/graphiql")]
 fn graphiql() -> Html<String> {

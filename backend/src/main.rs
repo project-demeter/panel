@@ -11,6 +11,7 @@ extern crate r2d2;
 
 mod nextjs;
 mod api;
+mod schema;
 
 use api::schema::Context;
 use std::env;
