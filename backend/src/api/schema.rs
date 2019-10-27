@@ -4,7 +4,7 @@ use r2d2;
 use diesel;
 use super::models::*;
 use super::inputs::*;
-use diesel::RunQueryDsl;
+use diesel::{RunQueryDsl, QueryDsl, ExpressionMethods};
 
 pub struct Context {
     pub pool: r2d2::Pool<diesel::r2d2::ConnectionManager<SqliteConnection>>,
@@ -28,34 +28,50 @@ graphql_object!(Query: Context |&self| {
         use crate::schema::users::dsl;
 
         let connection = executor.context().pool.get().unwrap();
-
         Ok(dsl::users.load::<User>(&connection)?)
     }
 
     field servers(&executor) -> FieldResult<Vec<Server>> {
-        Ok(vec![])
+        use crate::schema::servers::dsl;
+
+        let connection = executor.context().pool.get().unwrap();
+        Ok(dsl::servers.load::<Server>(&connection)?)
     }
 
     field server(&executor, id: i32) -> FieldResult<Server> {
-        Ok(Server {
-            id,
-            title: String::from("My Minecraft server")
-        })
+        use crate::schema::servers::dsl;
+
+        let connection = executor.context().pool.get().unwrap();
+        Ok(
+            dsl::servers.filter(dsl::id.eq(id))
+                .first::<Server>(&connection)?
+        )
     }
 });
 
 #[juniper::object(Context = Context)]
 impl Mutation {
-    fn register(context: &Context, new_user: NewUser) -> FieldResult<Option<User>> {
+    fn register(context: &Context, user: NewUser) -> FieldResult<User> {
         use crate::schema::users::dsl::*;
 
         let connection = context.pool.get().unwrap();
-        diesel::insert_into(users).values(&new_user).execute(&connection);
-        Ok(None)
+        diesel::insert_into(users).values(&user).execute(&connection)?;
+
+        let inserted_user = users.order(id.desc())
+            .first::<User>(&connection)?;
+
+        Ok(inserted_user)
     }
 
-    fn createServer(context: &Context) -> FieldResult<Server> {
-        // TODO: Implement database storing
-        Ok(Server { id: 100, title: String::from("Minecraft") })
+    fn createServer(context: &Context, server: NewServer) -> FieldResult<Server> {
+        use crate::schema::servers::dsl::*;
+
+        let connection = context.pool.get().unwrap();
+        diesel::insert_into(servers).values(&server).execute(&connection)?;
+
+        let inserted_server = servers.order(id.desc())
+            .first::<Server>(&connection)?;
+
+        Ok(inserted_server)
     }
 }
