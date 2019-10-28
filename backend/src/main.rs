@@ -8,12 +8,13 @@ extern crate walkdir;
 extern crate regex;
 extern crate dotenv;
 extern crate r2d2;
+extern crate crypto;
 
 mod nextjs;
 mod api;
 mod schema;
 
-use api::schema::Context;
+use api::schema::ConnectionPool;
 use std::env;
 use diesel::r2d2::ConnectionManager;
 use r2d2::Pool;
@@ -23,10 +24,10 @@ fn main() {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
     let manager = ConnectionManager::new(database_url);
-    let pool = Pool::new(manager).unwrap();
+    let pool: ConnectionPool = Pool::new(manager).unwrap();
 
     rocket::ignite()
-        .manage(Context { pool })
+        .manage(pool)
         .attach(nextjs::NextJsFairing())
         .attach(api::GraphqlFairing())
         .launch();

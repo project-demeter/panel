@@ -4,10 +4,17 @@ use r2d2;
 use diesel;
 use super::models::*;
 use super::inputs::*;
+use super::auth::AuthOption;
 use diesel::{RunQueryDsl, QueryDsl, ExpressionMethods};
+use jwt::{Token, Header, Registered};
+use crypto::sha2::Sha256;
+use chrono::prelude::*;
+
+pub type ConnectionPool = r2d2::Pool<diesel::r2d2::ConnectionManager<SqliteConnection>>;
 
 pub struct Context {
-    pub pool: r2d2::Pool<diesel::r2d2::ConnectionManager<SqliteConnection>>,
+    pub pool: ConnectionPool,
+    pub authentication: Option<AuthOption>,
 }
 
 impl juniper::Context for Context {}
@@ -73,5 +80,27 @@ impl Mutation {
             .first::<Server>(&connection)?;
 
         Ok(inserted_server)
+    }
+
+    fn login(context: &Context, user: LoginInput) -> FieldResult<AuthToken> {
+        use crate::schema::users::dsl;
+
+        let connection = executor.context().pool.get().unwrap();
+        let user = dsl::users.filter(dsl::username.eq(user.username)).first::<User>(&connection)?;
+
+        let claims = Registered {
+            sub: Some("15".to_string()),
+            ..Default::default()
+        };
+
+        let token = Token::<Header, Registered>::new(Default::default(), claims);
+        let token = token.signed(b"secret_key", Sha256::new())
+            .map_err(|e| String::from("Could not sign JWT"))?;
+
+        Ok(AuthToken {
+            user,
+            token: token.to_string(),
+            valid_until: Utc::now().naive_utc(),
+        })
     }
 }

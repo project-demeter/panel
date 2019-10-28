@@ -13,3 +13,9 @@ pub struct NewUser {
 pub struct NewServer {
     pub title: String,
 }
+
+#[derive(GraphQLInputObject)]
+pub struct LoginInput {
+    pub username: String,
+    pub password: String
+}

@@ -1,3 +1,5 @@
+use chrono::prelude::*;
+
 #[derive(Queryable, GraphQLObject, Debug)]
 pub struct Server {
     pub id: i32,
@@ -10,4 +12,11 @@ pub struct User {
     pub username: String,
     #[graphql(skip)]
     pub password: String,
+}
+
+#[derive(GraphQLObject)]
+pub struct AuthToken {
+    pub user: User,
+    pub token: String,
+    pub valid_until: NaiveDateTime,
 }

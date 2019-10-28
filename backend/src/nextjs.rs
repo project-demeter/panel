@@ -10,7 +10,7 @@ fn get_static_file(path: PathBuf) -> Option<NamedFile> {
     NamedFile::open(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/static")).join(path)).ok()
 }
 
-#[get("/<path..>", rank = 2)]
+#[get("/<path..>", rank = 3)]
 fn static_files(path: PathBuf) -> Option<NamedFile> {
     get_static_file(path)
 }
