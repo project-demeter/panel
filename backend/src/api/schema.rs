@@ -89,7 +89,7 @@ impl Mutation {
         let user = dsl::users.filter(dsl::username.eq(user.username)).first::<User>(&connection)?;
 
         let claims = Registered {
-            sub: Some("15".to_string()),
+            sub: Some(user.id.to_string()),
             ..Default::default()
         };
 
