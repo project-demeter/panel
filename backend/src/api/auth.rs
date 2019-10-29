@@ -1,6 +1,9 @@
 use rocket::Outcome;
 use rocket::request::{self, Request, FromRequest};
 use super::models::User;
+use chrono::{prelude::*, Duration};
+use std::convert::TryInto;
+use std::env::{self, VarError};
 
 pub extern crate jwt;
 
@@ -10,6 +13,27 @@ use self::jwt::{Header, Registered, Token};
 pub struct AuthOption {
     pub claims: Registered,
     pub user: Option<User>,
+}
+
+const DEFAULT_LIFETIME: i64 = 60*60*24*7;
+
+pub fn create_token(user: &User) -> Token<Header, Registered> {
+    let lifetime: i64 = env::var("JWT_LIFETIME")
+        .and_then(|v| v.parse().map_err(|_| VarError::NotPresent))
+        .unwrap_or(DEFAULT_LIFETIME);
+    let expiration = (Utc::now() + Duration::seconds(lifetime)).timestamp();
+
+    let claims = Registered {
+        iss: Some("Demeter".to_string()),
+        sub: Some(user.id.to_string()),
+        aud: Some("Demeter Panel".to_string()),
+        exp: Some(expiration.try_into().unwrap()),
+        iat: Some(Utc::now().timestamp().try_into().unwrap()),
+        // TODO: Determine if we want to implement the jti claim
+        ..Default::default()
+    };
+
+    Token::<Header, Registered>::new(Default::default(), claims)
 }
 
 fn read_token(key: &str) -> Result<Registered, String> {

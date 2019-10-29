@@ -4,9 +4,8 @@ use r2d2;
 use diesel;
 use super::models::*;
 use super::inputs::*;
-use super::auth::AuthOption;
+use super::auth::{self, AuthOption};
 use diesel::{RunQueryDsl, QueryDsl, ExpressionMethods};
-use jwt::{Token, Header, Registered};
 use crypto::sha2::Sha256;
 use chrono::prelude::*;
 
@@ -88,12 +87,7 @@ impl Mutation {
         let connection = executor.context().pool.get().unwrap();
         let user = dsl::users.filter(dsl::username.eq(user.username)).first::<User>(&connection)?;
 
-        let claims = Registered {
-            sub: Some(user.id.to_string()),
-            ..Default::default()
-        };
-
-        let token = Token::<Header, Registered>::new(Default::default(), claims);
+        let token = auth::create_token(&user);
         let token = token.signed(b"secret_key", Sha256::new())
             .map_err(|e| String::from("Could not sign JWT"))?;
 

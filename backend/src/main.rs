@@ -9,6 +9,7 @@ extern crate regex;
 extern crate dotenv;
 extern crate r2d2;
 extern crate crypto;
+extern crate chrono;
 
 mod nextjs;
 mod api;

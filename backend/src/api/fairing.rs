@@ -36,7 +36,7 @@ fn get_graphql_handler(
 }
 
 #[post("/graphql", data = "<request>")]
-fn post_graphql_handler(
+fn post_graphql_handler_authenticated(
     request: juniper_rocket::GraphQLRequest,
     schema: State<Schema>,
     pool: State<ConnectionPool>,
@@ -51,7 +51,7 @@ fn post_graphql_handler(
 }
 
 #[post("/graphql", data = "<request>", rank = 2)]
-fn post_graphql_handler_authenticated(
+fn post_graphql_handler(
     request: juniper_rocket::GraphQLRequest,
     schema: State<Schema>,
     pool: State<ConnectionPool>,
