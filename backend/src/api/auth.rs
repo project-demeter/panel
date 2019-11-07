@@ -1,21 +1,20 @@
-use rocket::Outcome;
-use rocket::request::{self, Request, FromRequest};
-use super::models::User;
+use crate::api::models::User;
 use chrono::{prelude::*, Duration};
+use crypto::sha2::Sha256;
+use jwt::{Header, Registered, Token};
+use rocket::{
+    request::{self, FromRequest, Request},
+    Outcome,
+};
 use std::convert::TryInto;
 use std::env::{self, VarError};
-
-pub extern crate jwt;
-
-use crypto::sha2::Sha256;
-use self::jwt::{Header, Registered, Token};
 
 pub struct AuthOption {
     pub claims: Registered,
     pub user: Option<User>,
 }
 
-const DEFAULT_LIFETIME: i64 = 60*60*24*7;
+const DEFAULT_LIFETIME: i64 = 60 * 60 * 24 * 7;
 
 pub fn create_token(user: &User) -> Token<Header, Registered> {
     let lifetime: i64 = env::var("JWT_LIFETIME")
@@ -37,8 +36,8 @@ pub fn create_token(user: &User) -> Token<Header, Registered> {
 }
 
 fn read_token(key: &str) -> Result<Registered, String> {
-    let token = Token::<Header, Registered>::parse(key)
-        .map_err(|_| "Unable to parse key".to_string())?;
+    let token =
+        Token::<Header, Registered>::parse(key).map_err(|_| "Unable to parse key".to_string())?;
 
     if token.verify(b"secret_key", Sha256::new()) {
         Ok(token.claims)
@@ -55,10 +54,10 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthOption {
         if keys.len() != 1 {
             return Outcome::Forward(());
         }
-        
+
         match read_token(keys[0]) {
             Ok(claims) => Outcome::Success(AuthOption { claims, user: None }),
-            Err(_) => Outcome::Forward(())
+            Err(_) => Outcome::Forward(()),
         }
     }
 }

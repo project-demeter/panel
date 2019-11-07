@@ -1,5 +1,5 @@
-use crate::schema::users;
-use crate::schema::servers;
+use crate::schema::{servers, users};
+use juniper::GraphQLInputObject;
 
 #[derive(Insertable, GraphQLInputObject)]
 #[table_name = "users"]
@@ -17,5 +17,5 @@ pub struct NewServer {
 #[derive(GraphQLInputObject)]
 pub struct LoginInput {
     pub username: String,
-    pub password: String
+    pub password: String,
 }
