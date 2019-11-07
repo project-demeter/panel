@@ -2,7 +2,7 @@ name: Backend Checks
 on: [push]
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Git repository
@@ -20,11 +20,6 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: test
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout Git repository
-      uses: actions/checkout@v1
     - name: Run clippy
       uses: actions-rs/clippy-check@v1.0.5
       with:
