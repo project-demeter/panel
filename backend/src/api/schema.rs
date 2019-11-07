@@ -1,18 +1,20 @@
-use juniper::FieldResult;
-use diesel::SqliteConnection;
-use r2d2;
-use diesel;
-use super::models::*;
-use super::inputs::*;
-use super::auth::{self, AuthOption};
-use diesel::{RunQueryDsl, QueryDsl, ExpressionMethods};
-use crypto::sha2::Sha256;
+use crate::api::auth::{self, AuthOption};
+use crate::api::inputs::*;
+use crate::api::models::*;
 use chrono::prelude::*;
+use crypto::sha2::Sha256;
+use diesel;
+use diesel::SqliteConnection;
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use juniper::graphql_object;
+use juniper::FieldResult;
+use rocket_contrib::database;
 
-pub type ConnectionPool = r2d2::Pool<diesel::r2d2::ConnectionManager<SqliteConnection>>;
+#[database("primary")]
+pub struct PrimaryConnection(SqliteConnection);
 
 pub struct Context {
-    pub pool: ConnectionPool,
+    pub connection: PrimaryConnection,
     pub authentication: Option<AuthOption>,
 }
 
@@ -33,24 +35,21 @@ graphql_object!(Query: Context |&self| {
     field users(&executor) -> FieldResult<Vec<User>> {
         use crate::schema::users::dsl;
 
-        let connection = executor.context().pool.get().unwrap();
-        Ok(dsl::users.load::<User>(&connection)?)
+        Ok(dsl::users.load::<User>(&*executor.context().connection)?)
     }
 
     field servers(&executor) -> FieldResult<Vec<Server>> {
         use crate::schema::servers::dsl;
 
-        let connection = executor.context().pool.get().unwrap();
-        Ok(dsl::servers.load::<Server>(&connection)?)
+        Ok(dsl::servers.load::<Server>(&*executor.context().connection)?)
     }
 
     field server(&executor, id: i32) -> FieldResult<Server> {
         use crate::schema::servers::dsl;
 
-        let connection = executor.context().pool.get().unwrap();
         Ok(
             dsl::servers.filter(dsl::id.eq(id))
-                .first::<Server>(&connection)?
+                .first::<Server>(&*executor.context().connection)?
         )
     }
 });
@@ -60,11 +59,11 @@ impl Mutation {
     fn register(context: &Context, user: NewUser) -> FieldResult<User> {
         use crate::schema::users::dsl::*;
 
-        let connection = context.pool.get().unwrap();
-        diesel::insert_into(users).values(&user).execute(&connection)?;
+        diesel::insert_into(users)
+            .values(&user)
+            .execute(&*context.connection)?;
 
-        let inserted_user = users.order(id.desc())
-            .first::<User>(&connection)?;
+        let inserted_user = users.order(id.desc()).first::<User>(&*context.connection)?;
 
         Ok(inserted_user)
     }
@@ -72,11 +71,13 @@ impl Mutation {
     fn createServer(context: &Context, server: NewServer) -> FieldResult<Server> {
         use crate::schema::servers::dsl::*;
 
-        let connection = context.pool.get().unwrap();
-        diesel::insert_into(servers).values(&server).execute(&connection)?;
+        diesel::insert_into(servers)
+            .values(&server)
+            .execute(&*context.connection)?;
 
-        let inserted_server = servers.order(id.desc())
-            .first::<Server>(&connection)?;
+        let inserted_server = servers
+            .order(id.desc())
+            .first::<Server>(&*context.connection)?;
 
         Ok(inserted_server)
     }
@@ -84,16 +85,18 @@ impl Mutation {
     fn login(context: &Context, user: LoginInput) -> FieldResult<AuthToken> {
         use crate::schema::users::dsl;
 
-        let connection = executor.context().pool.get().unwrap();
-        let user = dsl::users.filter(dsl::username.eq(user.username)).first::<User>(&connection)?;
+        let user = dsl::users
+            .filter(dsl::username.eq(user.username))
+            .first::<User>(&*context.connection)?;
 
         let token = auth::create_token(&user);
-        let token = token.signed(b"secret_key", Sha256::new())
+        let token = token
+            .signed(b"secret_key", Sha256::new())
             .map_err(|e| String::from("Could not sign JWT"))?;
 
         Ok(AuthToken {
             user,
-            token: token.to_string(),
+            token,
             valid_until: Utc::now().naive_utc(),
         })
     }

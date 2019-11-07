@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use juniper::GraphQLObject;
 
 #[derive(Queryable, GraphQLObject, Debug)]
 pub struct Server {
