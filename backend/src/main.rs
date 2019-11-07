@@ -3,6 +3,8 @@
 #[macro_use]
 extern crate diesel;
 
+this should definitely not compile now?!
+
 mod api;
 mod nextjs;
 mod schema;
