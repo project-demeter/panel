@@ -7,10 +7,14 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Build
+      working-directory: backend
       run: cargo build --verbose
     - name: Run tests
+      working-directory: backend
       run: cargo test --verbose
   lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions-rs/clippy-check@v1.0.5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
