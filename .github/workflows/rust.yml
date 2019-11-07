@@ -6,9 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Build
+    - name: Install latest nightly
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        override: true
+    - name: Run check
       working-directory: backend
-      run: cargo build --verbose
+      run: cargo check
     - name: Run tests
       working-directory: backend
       run: cargo test --verbose
