@@ -1,8 +1,11 @@
-use rocket::fairing::{Fairing, Info, Kind};
-use rocket::{Rocket, State};
-use rocket::response::content::Html;
-use super::schema::{Schema, Query, Context, Mutation, ConnectionPool};
-use super::auth::AuthOption;
+use crate::api::auth::AuthOption;
+use crate::api::schema::{Context, Mutation, PrimaryConnection, Query, Schema};
+use rocket::{
+    fairing::{Fairing, Info, Kind},
+    get, post,
+    response::content::Html,
+    routes, Rocket, State,
+};
 
 #[get("/graphiql")]
 fn graphiql() -> Html<String> {
@@ -13,14 +16,14 @@ fn graphiql() -> Html<String> {
 fn get_graphql_handler_authenticated(
     request: juniper_rocket::GraphQLRequest,
     schema: State<Schema>,
-    pool: State<ConnectionPool>,
+    connection: PrimaryConnection,
     authentication: AuthOption,
 ) -> juniper_rocket::GraphQLResponse {
     let context = Context {
-        pool: pool.clone(),
-        authentication: Some(authentication)
+        connection,
+        authentication: Some(authentication),
     };
-    
+
     request.execute(schema.inner(), &context)
 }
 
@@ -28,9 +31,12 @@ fn get_graphql_handler_authenticated(
 fn get_graphql_handler(
     request: juniper_rocket::GraphQLRequest,
     schema: State<Schema>,
-    pool: State<ConnectionPool>,
+    connection: PrimaryConnection,
 ) -> juniper_rocket::GraphQLResponse {
-    let context = Context { pool: pool.clone(), authentication: None };
+    let context = Context {
+        connection,
+        authentication: None,
+    };
 
     request.execute(schema.inner(), &context)
 }
@@ -39,12 +45,12 @@ fn get_graphql_handler(
 fn post_graphql_handler_authenticated(
     request: juniper_rocket::GraphQLRequest,
     schema: State<Schema>,
-    pool: State<ConnectionPool>,
+    connection: PrimaryConnection,
     authentication: AuthOption,
 ) -> juniper_rocket::GraphQLResponse {
     let context = Context {
-        pool: pool.clone(),
-        authentication: Some(authentication)
+        connection,
+        authentication: Some(authentication),
     };
 
     request.execute(schema.inner(), &context)
@@ -54,9 +60,12 @@ fn post_graphql_handler_authenticated(
 fn post_graphql_handler(
     request: juniper_rocket::GraphQLRequest,
     schema: State<Schema>,
-    pool: State<ConnectionPool>,
+    connection: PrimaryConnection,
 ) -> juniper_rocket::GraphQLResponse {
-    let context = Context { pool: pool.clone(), authentication: None };
+    let context = Context {
+        connection,
+        authentication: None,
+    };
 
     request.execute(schema.inner(), &context)
 }
@@ -67,20 +76,21 @@ impl Fairing for GraphqlFairing {
     fn info(&self) -> Info {
         Info {
             name: "Juniper Route Provider",
-            kind: Kind::Attach
+            kind: Kind::Attach,
         }
     }
 
     fn on_attach(&self, rocket: Rocket) -> Result<Rocket, Rocket> {
-        let rocket = rocket
-            .manage(Schema::new(Query, Mutation {}))
-            .mount("/", routes![
+        let rocket = rocket.manage(Schema::new(Query, Mutation {})).mount(
+            "/",
+            routes![
                 graphiql,
                 get_graphql_handler,
                 get_graphql_handler_authenticated,
                 post_graphql_handler,
                 post_graphql_handler_authenticated,
-            ]);
+            ],
+        );
 
         Ok(rocket)
     }
