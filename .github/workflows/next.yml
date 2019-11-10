@@ -1,0 +1,26 @@
+name: Frontend Checks
+on:
+  push:
+    paths:
+      - 'frontend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Cache node_modules
+      uses: actions/cache@v1
+      with:
+        path: frontend/node_modules
+        key: ${{ runner.OS }}-node_modules-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: ${{ runner.OS }}-node_modules
+
+    - name: Install dependencies
+      working-directory: frontend
+      run: npm install
+
+    - name: Run tests
+      working-directory: frontend
+      run: npm run test
